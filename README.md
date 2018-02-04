@@ -1,2 +1,2 @@
 # atari
-just for fun
+just for fun, didn't test yet
