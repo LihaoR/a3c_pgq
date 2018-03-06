@@ -1,2 +1,3 @@
 # atari
-just for fun, didn't test yet
+
+it can work well
