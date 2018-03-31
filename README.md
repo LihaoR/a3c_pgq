@@ -1,3 +1,2 @@
 # atari
-
-it can work well
+GAE helps a lot. It can give a advantage function with low varience and bias
