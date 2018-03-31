@@ -68,6 +68,7 @@ class AC_Network():
                 self.actions = tf.placeholder(shape=[None],dtype=tf.int32)
                 self.actions_onehot = tf.one_hot(self.actions,a_size,dtype=tf.float32)
                 self.target_v = tf.placeholder(shape=[None],dtype=tf.float32)
+                self.target_v_q = tf.placeholder(shape=[None],dtype=tf.float32)
                 self.advantages = tf.placeholder(shape=[None],dtype=tf.float32)
                 self.responsible_outputs = tf.reduce_sum(self.policy * self.actions_onehot, [1])
                 # ac loss
@@ -77,7 +78,7 @@ class AC_Network():
                 self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.01
                 # q  loss
                 self.q_tmp = tf.reduce_sum(tf.multiply(self.out, self.actions_onehot), reduction_indices=1)
-                self.q_loss = tf.reduce_mean(tf.square(self.target_v - self.q_tmp))
+                self.q_loss = tf.reduce_mean(tf.square(self.target_v_q - self.q_tmp))
                 
                 local_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope)
                 self.gradients = tf.gradients(self.loss,local_vars)
@@ -114,7 +115,13 @@ class Worker():
         rewards = rollout[:,2]
         next_observations = rollout[:,3]
         values = rollout[:,5]
-
+        
+        v_target_q = []
+        for reward in rewards[::-1]:
+            v1q = reward + v1q * gamma
+            v_target_q.append(v1q)
+        v_target_q.reverse()
+        
         self.rewards_plus = np.asarray(rewards.tolist() + [bootstrap_value])
         discounted_rewards = discount(self.rewards_plus,gamma)[:-1]
         self.value_plus = np.asarray(values.tolist() + [bootstrap_value])
@@ -124,6 +131,7 @@ class Worker():
         feed_dict = {self.local_AC.target_v:discounted_rewards,
             self.local_AC.inputs:np.vstack(observations),
             self.local_AC.actions:actions,
+            self.local_AC.target_V_Q:v_target_q,
             self.local_AC.advantages:advantages}
 
         v_l,p_l,e_l,g_n,v_n,_,_ = sess.run([self.local_AC.value_loss,
