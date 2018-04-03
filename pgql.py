@@ -211,8 +211,8 @@ class Worker():
                 self.episode_rewards.append(episode_reward)
                 self.episode_lengths.append(episode_step_count)
 
-                #if len(episode_buffer) != 0:
-                #    v_l,p_l,e_l,g_n,v_n = self.train(episode_buffer,sess,gamma,lam,0.0)
+                if len(episode_buffer) != 0:
+                    v_l,p_l,e_l,g_n,v_n = self.train(episode_buffer,sess,gamma,lam,0.0,0.0)
                 if episode_count % 5 == 0 and episode_count != 0:
                     if self.name == 'worker_0' and episode_count % 5 == 0:
                         print('\n episode: ', episode_count, 'global_step:', GLOBAL_STEP, 'mean episode reward: ', np.mean(self.episode_rewards[-5:]))
